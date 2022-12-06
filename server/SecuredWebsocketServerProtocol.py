@@ -12,7 +12,7 @@ from websockets.server import WebSocketServerProtocol
 class SecuredWebsocketServerProtocol(WebSocketServerProtocol):
     CHECK_TOKEN_METHOD = None
     CHECK_IP_ADDRESS_METHOD = None
-    FORWARDING_IS_ON = True
+    FORWARDING_IS_ON = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
