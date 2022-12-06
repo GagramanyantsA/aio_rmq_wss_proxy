@@ -1,1 +1,2 @@
+aio-pika==8.2.5
 websockets==10.4
