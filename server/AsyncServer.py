@@ -3,12 +3,13 @@ import websockets
 from logging import Logger
 
 from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from .Settings import Settings
 
 
 class AsyncServer:
 
     def __init__(self, ws_handler, host: str, port: int, logger: Logger):
-        self._name = 'AsyncWSS'.ljust(15)
+        self._name = Settings.format_name('AsyncWSS')
 
         self._logger = logger
 
@@ -31,7 +32,7 @@ class AsyncServer:
         self._logger.info(f'{self.name} Started [HOST: {self._host} PORT: {self._port}]')
 
     def stop(self):
-        if self._running_inst:
+        if self._running_inst and self._running_inst.is_serving():
             self._running_inst.close()
             self._logger.info(f'{self.name} Stopped')
         else:

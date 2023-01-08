@@ -3,3 +3,5 @@ venv
 .git
 
 current_thoughts
+serviceServerEventLoop.txt
+

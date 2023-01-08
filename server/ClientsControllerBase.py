@@ -1,13 +1,28 @@
+import asyncio
+from logging import Logger
+
 from typing import List, Tuple
 
 from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from .Settings import Settings
 
 
 class ClientsControllerBase:
 
-    def __init__(self):
+    def __init__(self, logger: Logger, exception_queue: asyncio.Queue):
+        self._name = Settings.format_name('ClientController')
+
         self._clients = {}
         self._rooms = {}
+
+        self._logger = logger
+        self._exception_queue = exception_queue
+
+        self._timeout_secs = 5
+
+    @property
+    def name(self):
+        return self._name
 
     def get_receivers(self, room: str) -> List[Tuple[str, SecuredWebsocketServerProtocol]]:
         clients_ids = self._rooms[room]
@@ -64,3 +79,19 @@ class ClientsControllerBase:
     def unsubscribe_room(self, client_id: str, room_name: str):
         if client_id in self._rooms[room_name]:
             self._rooms[room_name].remove(client_id)
+
+    async def check_clients(self):
+        try:
+            while True:
+                lost_clients_ids = self.clean_disconnected_clients()
+                clients_amount = self.get_clients_amount()
+
+                if lost_clients_ids:
+                    self._logger.info(f'{self.name} Disconnected Clients: {lost_clients_ids}. '
+                                      f'New Clients Amount: {clients_amount}')
+
+                await asyncio.sleep(self._timeout_secs)
+
+        except Exception as ex:
+            await self._exception_queue.put((self.name, 'Cleaning clients', ex))
+            return

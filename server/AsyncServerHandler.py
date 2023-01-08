@@ -9,8 +9,9 @@ from logging import Logger
 from websockets.exceptions import ConnectionClosedOK as WS_ConnectionClosedOK, \
     ConnectionClosedError as WS_ConnectionClosedError
 
-from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 from .ClientsControllerBase import ClientsControllerBase
+from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from .Settings import Settings
 
 
 class AsyncServerHandler:
@@ -18,7 +19,7 @@ class AsyncServerHandler:
     def __init__(self, clients_controller: ClientsControllerBase,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
-        self._name = 'AsyncWSHandler'.ljust(15)
+        self._name = Settings.format_name('AsyncWSHandler')
 
         self._clients_controller = clients_controller
         self._logger = logger
