@@ -81,6 +81,8 @@ class ClientsControllerBase:
             self._rooms[room_name].remove(client_id)
 
     async def check_clients(self):
+        self._logger.info(f'{self.name} Started')
+
         try:
             while True:
                 lost_clients_ids = self.clean_disconnected_clients()
@@ -91,6 +93,10 @@ class ClientsControllerBase:
                                       f'New Clients Amount: {clients_amount}')
 
                 await asyncio.sleep(self._timeout_secs)
+
+        except asyncio.CancelledError:
+            self._logger.warning(f'{self.name} Cancelled!')
+            return
 
         except Exception as ex:
             await self._exception_queue.put((self.name, 'Cleaning clients', ex))

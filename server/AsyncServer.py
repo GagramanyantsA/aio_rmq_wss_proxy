@@ -2,13 +2,12 @@ import websockets
 
 from logging import Logger
 
-from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 from .Settings import Settings
 
 
 class AsyncServer:
 
-    def __init__(self, ws_handler, host: str, port: int, logger: Logger):
+    def __init__(self, ws_handler, websocket_protocol_class, host: str, port: int, logger: Logger):
         self._name = Settings.format_name('AsyncWSS')
 
         self._logger = logger
@@ -19,7 +18,7 @@ class AsyncServer:
         self._future_inst = websockets.serve(ws_handler=ws_handler,
                                              host=self._host,
                                              port=self._port,
-                                             create_protocol=SecuredWebsocketServerProtocol)
+                                             create_protocol=websocket_protocol_class)
 
         self._running_inst = None
 

@@ -48,72 +48,95 @@ class AioRmqConsumer:
 
     async def _message_handler(self, message: aio_pika.abc.AbstractIncomingMessage):
         async with message.process():
-            await self._process_message(message.body)
+            try:
+                await self._process_message(message.body)
+                await message.ack()
+            except Exception as ex:
+                await message.reject()
 
-    async def consume(self):
+    async def _init_conn(self):
+        # creating TCP connection to use RPC calls
+        self._logger.info(f'{self.name} Connecting to RMQ: {self._rmq_host}:{self._rmq_port}')
+        self._conn = await aio_pika.connect_robust(host=self._rmq_host, port=self._rmq_port)
+        self._logger.info(f'{self.name} Connection Established: {self._rmq_host}:{self._rmq_port}')
+
+    async def _init_channel(self):
+        # create new channel inside TCP connection which is like separate erlang service
+        self._logger.debug(f'{self.name} Openning Channel')
+        self._channel = await self._conn.channel()
+        self._logger.debug(f'{self.name} Channel Opened')
+
+    async def _init_exchange(self):
+        # inside channel we declare indempodent exchange
+        self._logger.debug(f'{self.name} Declaring DIRECT exchange: {self._exchange_name}')
+        self._exchange = await self._channel.declare_exchange(self._exchange_name, ExchangeType.DIRECT)
+        self._logger.debug(f'{self.name} DIRECT exchange Declared: {self._exchange_name}')
+
+    async def _init_queue(self):
+        # also create idempodent queues
+        self._logger.debug(f'{self.name} Declaring Queue: {self._queue_name}')
+        self._queue = await self._channel.declare_queue(self._queue_name)
+        self._logger.debug(f'{self.name} Queue Declared: {self._queue_name}')
+
+    async def _init_bindings(self):
+        # binding key
+        binding_key = f'route_to_{self._exchange_name}'
+        self._logger.debug(f'{self.name} Creating Binding Key: {binding_key}')
+        await self._queue.bind(self._exchange, binding_key)
+        self._logger.debug(f'{self.name} Binding Key Created: {binding_key}')
+
+    async def _close_conn(self):
+        # close TCP connection
+        if self._conn:
+            self._logger.info(f'{self.name} Closing Connection')
+            await self._conn.close()
+            self._logger.info(f'{self.name} Connection Closed')
+
+    async def _connect(self) -> bool:
         connection_attempts = 0
+
         while True:
             connection_attempts += 1
 
             try:
-                # creating TCP connection to use RPC calls
-                self._logger.info(f'{self.name} Connecting to RMQ: {self._rmq_host}:{self._rmq_port}')
-                self._conn = await aio_pika.connect_robust(host=self._rmq_host, port=self._rmq_port)
-                self._logger.info(f'{self.name} Connection Established: {self._rmq_host}:{self._rmq_port}')
+                await self._init_conn()
+                await self._init_channel()
+                await self._init_exchange()
+                await self._init_queue()
+                await self._init_bindings()
 
-                # create new channel inside TCP connection which is like separate erlang service
-                self._logger.info(f'{self.name} Openning Channel')
-                self._channel = await self._conn.channel()
-                self._logger.info(f'{self.name} Channel Opened')
+                await self._queue.consume(callback=self._message_handler, no_ack=self._no_ack)
 
-                # inside channel we declare indempodent exchange
-                self._logger.info(f'{self.name} Declaring DIRECT exchange: {self._exchange_name}')
-                self._exchange = await self._channel.declare_exchange(self._exchange_name, ExchangeType.DIRECT)
-                self._logger.info(f'{self.name} Declared DIRECT exchange: {self._exchange_name}')
+                return True
 
-                # also create idempodent queues
-                self._logger.info(f'{self.name} Declaring Queue: {self._queue_name}')
-                self._queue = await self._channel.declare_queue(self._queue_name)
-                self._logger.info(f'{self.name} Declared Queue: {self._queue_name}')
-
-                # binding key
-                binding_key = f'route_to_{self._exchange_name}'
-                self._logger.info(f'{self.name} Creating Binding Key: {binding_key}')
-                await self._queue.bind(self._exchange, binding_key)
-                self._logger.info(f'{self.name} Created Binding Key: {binding_key}')
-
-                await self._queue.consume(self._message_handler, self._no_ack)
+            except asyncio.CancelledError:
+                await self._close_conn()
+                self._logger.warning(f'{self.name} Cancelled')
+                return False
 
             except Exception as ex:
                 if connection_attempts <= 3:
+                    await self._close_conn()
                     self._logger.info(f'{self.name} Error Consuming: {ex}')
-
-                    if self._channel:
-                        self._logger.info(f'{self.name} Closing Channel')
-                        await self._channel.close()
-                        self._logger.info(f'{self.name} Closed Channel')
-
-                    if self._conn:
-                        self._logger.info(f'{self.name} Closing Connection')
-                        await self._conn.close()
-                        self._logger.info(f'{self.name} Closed Connection')
-
                     await asyncio.sleep(3)
                     continue
 
                 else:
                     await self._exception_queue.put((self.name, 'Error Consume', ex))
-                    return
+                    return False
 
-            break
+    async def consume(self):
+        if not await self._connect():
+            return
 
         try:
             await asyncio.Future()
-        finally:
-            self._logger.info(f'{self.name} Closing Channel')
-            await self._channel.close()
-            self._logger.info(f'{self.name} Closed Channel')
 
-            self._logger.info(f'{self.name} Closing Connection')
-            await self._conn.close()
-            self._logger.info(f'{self.name} Closed Connection')
+        except asyncio.CancelledError as ex:
+            self._logger.warning(f'{self.name} Cancelled!')
+
+        except Exception as ex:
+            await self._exception_queue.put((self.name, 'Running', ex))
+
+        finally:
+            await self._close_conn()
