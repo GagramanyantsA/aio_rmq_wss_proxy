@@ -4,4 +4,4 @@ __pycache__
 /venv/
 
 current_thoughts
-serviceServerEventLoop.txt
+public_websocket_service.log

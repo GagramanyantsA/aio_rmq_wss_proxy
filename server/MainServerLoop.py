@@ -1,33 +1,33 @@
 import asyncio
-from concurrent.futures import FIRST_COMPLETED
 
+from concurrent.futures import FIRST_COMPLETED
 from logging import Logger
 
 from server.AioRmqConsumer import AioRmqConsumer
 from server.AsyncServer import AsyncServer
 from server.AsyncServerHandler import AsyncServerHandler
 from server.ClientsControllerBase import ClientsControllerBase
-from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from server.Settings import Settings
+from server.Utils import Utils
 
 
-class ServerEventLoop:
+class MainServerLoop:
 
-    def __init__(self, host: str, port: int, logger: Logger):
-        self._name = Settings.format_name('Main Loop')
+    def __init__(self, name: str,
+                 async_server: AsyncServer,
+                 async_server_handler: AsyncServerHandler,
+                 aio_rmq_consumer: AioRmqConsumer,
+                 clients_controller: ClientsControllerBase,
+                 logger: Logger,
+                 exception_queue: asyncio.Queue):
+        self._name: str = Utils.format_name(name)
 
-        self._logger = logger
-        self._exception_queue = asyncio.Queue()
+        self._logger: Logger = logger
+        self._exception_queue: asyncio.Queue = exception_queue
 
-        self._clients_controller = ClientsControllerBase(self._logger, self._exception_queue)
-        self._async_server_handler = AsyncServerHandler(self._clients_controller, self._logger, self._exception_queue)
-        self._async_server = AsyncServer(self._async_server_handler.do_action,
-                                         SecuredWebsocketServerProtocol,
-                                         host, port, logger)
-
-        self._received_messages_queue = asyncio.Queue()
-        self._aio_rmq_consumer = AioRmqConsumer('localhost', 5672, 'websocket_exch', 'public_websocket',
-                                                self._received_messages_queue, self._logger, self._exception_queue)
+        self._async_server: AsyncServer = async_server
+        self._async_server_handler: AsyncServer = async_server_handler
+        self._aio_rmq_consumer: AioRmqConsumer = aio_rmq_consumer
+        self._clients_controller: ClientsControllerBase = clients_controller
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -35,19 +35,14 @@ class ServerEventLoop:
                                                                name='Main-Task')
         self._runserver_task: asyncio.Task = self._loop.create_task(self._async_server.run(),
                                                                     name='Async-Server-Task')
-        self._check_clients_task: asyncio.Task = self._loop.create_task(self._clients_controller.check_clients(),
-                                                                        name='Check-Clients-Task')
         self._transport_consume_task: asyncio.Task = self._loop.create_task(self._aio_rmq_consumer.consume(),
                                                                             name='Transport-Consume-Task')
+        self._check_clients_task: asyncio.Task = self._loop.create_task(self._clients_controller.check_clients(),
+                                                                        name='Check-Clients-Task')
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
-
-    def setup(self):
-        SecuredWebsocketServerProtocol.CHECK_IP_ADDRESS_METHOD = None
-        SecuredWebsocketServerProtocol.CHECK_TOKEN_METHOD = None
-        SecuredWebsocketServerProtocol.FORWARDING_IS_ON = False
 
     def run(self):
         self._loop.run_until_complete(self._main_task)
@@ -83,6 +78,8 @@ class ServerEventLoop:
             if task_name in known_tasks:
                 self._logger.warning(f'{self.name} \'{task_name}\' Task Cancel Sent')
 
+        self._async_server.stop()
+
     async def main(self):
         await asyncio.wait([
             self._runserver_task,
@@ -105,23 +102,4 @@ class ServerEventLoop:
             self.cancel_all_tasks(with_main=False)
 
         except asyncio.CancelledError:
-            self._logger.warning(f'{self.name} Main Task Cancelled!')
-
-
-if __name__ == '__main__':
-    import os
-    from logger.LoggerLoader import LoggerLoader
-
-    logger = LoggerLoader('ServerEventLoop.txt', 'DEBUG', os.getcwd()).get_logger()
-    host = 'localhost'
-    port = 9001
-
-    server_loop = ServerEventLoop(host, port, logger)
-
-    try:
-        server_loop.run()
-    except KeyboardInterrupt:
-        server_loop.cancel_all_tasks(with_main=True)
-        server_loop.restart_to_cancel_tasks()
-    finally:
-        server_loop.stop()
+            self._logger.warning(f'{self.name} Task Cancelled!')

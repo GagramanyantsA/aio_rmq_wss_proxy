@@ -1,14 +1,21 @@
 import websockets
 
 from logging import Logger
+from typing import Type, Callable, Coroutine
 
-from .Settings import Settings
+from server.Utils import Utils
+
+from websockets.server import WebSocketServerProtocol
 
 
 class AsyncServer:
 
-    def __init__(self, ws_handler, websocket_protocol_class, host: str, port: int, logger: Logger):
-        self._name = Settings.format_name('AsyncWSS')
+    def __init__(self, ws_handler: Callable[[WebSocketServerProtocol, str], Coroutine],
+                 websocket_protocol_class: Type[WebSocketServerProtocol],
+                 host: str,
+                 port: int,
+                 logger: Logger):
+        self._name = Utils.format_name('AsyncWSS')
 
         self._logger = logger
 

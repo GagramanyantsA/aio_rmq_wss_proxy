@@ -1,17 +1,16 @@
 import asyncio
-import uuid
 import json
-
-from typing import Dict, Tuple, Optional
+import uuid
 
 from logging import Logger
+from typing import Dict, Tuple, Optional
+
+from server.ClientsControllerBase import ClientsControllerBase
+from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from server.Utils import Utils
 
 from websockets.exceptions import ConnectionClosedOK as WS_ConnectionClosedOK, \
     ConnectionClosedError as WS_ConnectionClosedError
-
-from .ClientsControllerBase import ClientsControllerBase
-from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from .Settings import Settings
 
 
 class AsyncServerHandler:
@@ -19,7 +18,7 @@ class AsyncServerHandler:
     def __init__(self, clients_controller: ClientsControllerBase,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
-        self._name = Settings.format_name('AsyncWSHandler')
+        self._name = Utils.format_name('AsyncWSHandler')
 
         self._clients_controller = clients_controller
         self._logger = logger

@@ -1,10 +1,10 @@
+import logging.config
 import os
 
-import logging.config
 from logging import Logger
 
-from .ColorFormatter import ColorFormatter
-from .FileFormatter import FileFormatter
+from logger.ColorFormatter import ColorFormatter
+from logger.FileFormatter import FileFormatter
 
 
 class LoggerLoader:

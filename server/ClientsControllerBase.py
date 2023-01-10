@@ -3,14 +3,14 @@ from logging import Logger
 
 from typing import List, Tuple
 
-from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from .Settings import Settings
+from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from server.Utils import Utils
 
 
 class ClientsControllerBase:
 
     def __init__(self, logger: Logger, exception_queue: asyncio.Queue):
-        self._name = Settings.format_name('ClientController')
+        self._name = Utils.format_name('ClientController')
 
         self._clients = {}
         self._rooms = {}
@@ -95,7 +95,7 @@ class ClientsControllerBase:
                 await asyncio.sleep(self._timeout_secs)
 
         except asyncio.CancelledError:
-            self._logger.warning(f'{self.name} Cancelled!')
+            self._logger.warning(f'{self.name} Task Cancelled!')
             return
 
         except Exception as ex:

@@ -3,5 +3,5 @@ venv
 .git
 
 current_thoughts
-serviceServerEventLoop.txt
+public_websocket_service.log
 

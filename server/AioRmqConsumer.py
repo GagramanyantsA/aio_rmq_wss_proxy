@@ -1,11 +1,10 @@
 import aio_pika
 import asyncio
 
+from aio_pika import ExchangeType
 from logging import Logger
 
-from aio_pika import ExchangeType
-
-from server.Settings import Settings
+from server.Utils import Utils
 
 
 class AioRmqConsumer:
@@ -14,10 +13,9 @@ class AioRmqConsumer:
                  rmq_port: int,
                  exchange_name: str,
                  queue_name: str,
-                 out_queue: asyncio.Queue,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
-        self._name = Settings.format_name('AIO_RMQ_Consumer')
+        self._name = Utils.format_name('AIO_RMQ_Consumer')
         self._logger = logger
         self._exception_queue = exception_queue
 
@@ -25,8 +23,6 @@ class AioRmqConsumer:
         self._rmq_port = rmq_port
         self._exchange_name = exchange_name
         self._queue_name = queue_name
-
-        self._out_queue = out_queue
 
         self._no_ack = False
 
@@ -42,9 +38,7 @@ class AioRmqConsumer:
     async def _process_message(self, body):
         self._logger.info(f'{self.name} R < {body}')
 
-        # todo parsing
-        # todo put to out queue
-        pass
+        # todo put to queue ???
 
     async def _message_handler(self, message: aio_pika.abc.AbstractIncomingMessage):
         async with message.process():
@@ -53,6 +47,7 @@ class AioRmqConsumer:
                 await message.ack()
             except Exception as ex:
                 await message.reject()
+                await self._exception_queue.put((self.name, 'Error in Message', ex))
 
     async def _init_conn(self):
         # creating TCP connection to use RPC calls
@@ -93,37 +88,26 @@ class AioRmqConsumer:
             self._logger.info(f'{self.name} Connection Closed')
 
     async def _connect(self) -> bool:
-        connection_attempts = 0
+        try:
+            await self._init_conn()
+            await self._init_channel()
+            await self._init_exchange()
+            await self._init_queue()
+            await self._init_bindings()
 
-        while True:
-            connection_attempts += 1
+            await self._queue.consume(callback=self._message_handler, no_ack=self._no_ack)
 
-            try:
-                await self._init_conn()
-                await self._init_channel()
-                await self._init_exchange()
-                await self._init_queue()
-                await self._init_bindings()
+            return True
 
-                await self._queue.consume(callback=self._message_handler, no_ack=self._no_ack)
+        except asyncio.CancelledError:
+            await self._close_conn()
+            self._logger.warning(f'{self.name} Task Cancelled')
+            return False
 
-                return True
-
-            except asyncio.CancelledError:
-                await self._close_conn()
-                self._logger.warning(f'{self.name} Cancelled')
-                return False
-
-            except Exception as ex:
-                if connection_attempts <= 3:
-                    await self._close_conn()
-                    self._logger.info(f'{self.name} Error Consuming: {ex}')
-                    await asyncio.sleep(3)
-                    continue
-
-                else:
-                    await self._exception_queue.put((self.name, 'Error Consume', ex))
-                    return False
+        except Exception as ex:
+            await self._close_conn()
+            await self._exception_queue.put((self.name, 'Error Consume', ex))
+            return False
 
     async def consume(self):
         if not await self._connect():
@@ -133,10 +117,9 @@ class AioRmqConsumer:
             await asyncio.Future()
 
         except asyncio.CancelledError as ex:
-            self._logger.warning(f'{self.name} Cancelled!')
+            await self._close_conn()
+            self._logger.warning(f'{self.name} Task Cancelled!')
 
         except Exception as ex:
-            await self._exception_queue.put((self.name, 'Running', ex))
-
-        finally:
             await self._close_conn()
+            await self._exception_queue.put((self.name, 'Running Consume', ex))
