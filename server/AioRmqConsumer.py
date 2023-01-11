@@ -38,6 +38,8 @@ class AioRmqConsumer:
     async def _process_message(self, body):
         self._logger.info(f'{self.name} R < {body}')
 
+        # check and parse
+
         # todo put to queue ???
 
     async def _message_handler(self, message: aio_pika.abc.AbstractIncomingMessage):
