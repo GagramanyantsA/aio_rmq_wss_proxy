@@ -17,7 +17,7 @@ if __name__ == '__main__':
     try:
         server_loop.run()
     except KeyboardInterrupt:
-        server_loop.cancel_all_tasks(with_main=True)
+        server_loop.cancel_all_tasks(with_exc_analysis_task=True)
         server_loop.restart_to_cancel_tasks()
     finally:
         server_loop.stop()

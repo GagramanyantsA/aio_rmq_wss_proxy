@@ -81,7 +81,7 @@ class ClientsControllerBase:
             self._rooms[room_name].remove(client_id)
 
     async def check_clients(self):
-        self._logger.info(f'{self.name} Started')
+        self._logger.warning(f'{self.name} Started')
 
         try:
             while True:
@@ -95,7 +95,7 @@ class ClientsControllerBase:
                 await asyncio.sleep(self._timeout_secs)
 
         except asyncio.CancelledError:
-            self._logger.warning(f'{self.name} Task Cancelled!')
+            self._logger.warning(f'{self.name} Stopped')
             return
 
         except Exception as ex:

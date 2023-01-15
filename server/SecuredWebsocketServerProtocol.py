@@ -23,13 +23,13 @@ class SecuredWebsocketServerProtocol(WebSocketServerProtocol):
     def get_auth_token(self, path: str, request_headers: Headers) -> Optional[str]:
         auth_token = request_headers.get("Authorization", None)
 
-        if auth_token is not None:
+        if auth_token:
             return auth_token
 
         parsed = urllib.urlparse(path)
         auth_token = urllib.parse_qs(parsed.query).get('authorization', None)
 
-        return None if auth_token is None else auth_token[0]
+        return auth_token[0] if auth_token else None
 
     def get_device_identifier(self, request_headers: Headers):
         return request_headers.get('Device-Identifier', None)

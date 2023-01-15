@@ -35,11 +35,11 @@ class AsyncServer:
 
     async def run(self):
         self._running_inst = await self._future_inst
-        self._logger.info(f'{self.name} Started [HOST: {self._host} PORT: {self._port}]')
+        self._logger.warning(f'{self.name} Started [HOST: {self._host} PORT: {self._port}]')
 
     def stop(self):
         if self._running_inst and self._running_inst.is_serving():
             self._running_inst.close()
-            self._logger.info(f'{self.name} Stopped')
+            self._logger.warning(f'{self.name} Stopped')
         else:
             self._logger.warning(f'{self.name} Already Stopped')
