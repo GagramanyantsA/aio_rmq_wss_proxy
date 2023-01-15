@@ -2,10 +2,7 @@ import asyncio
 
 from logging import Logger
 
-from server.AioRmqConsumer import AioRmqConsumer
-from server.AsyncServer import AsyncServer
-from server.AsyncServerHandler import AsyncServerHandler
-from server.ClientsControllerBase import ClientsControllerBase
+from server import ClientsSender, AioRmqConsumer, AsyncServer, AsyncServerHandler, ClientsControllerBase
 from server.Utils import Utils
 
 
@@ -16,6 +13,7 @@ class MainServerLoop:
                  async_server_handler: AsyncServerHandler,
                  aio_rmq_consumer: AioRmqConsumer,
                  clients_controller: ClientsControllerBase,
+                 clients_sender: ClientsSender,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
         self._name: str = Utils.format_name(name)
@@ -27,6 +25,7 @@ class MainServerLoop:
         self._async_server_handler: AsyncServer = async_server_handler
         self._aio_rmq_consumer: AioRmqConsumer = aio_rmq_consumer
         self._clients_controller: ClientsControllerBase = clients_controller
+        self._clients_sender = clients_sender
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -38,6 +37,8 @@ class MainServerLoop:
                                                                             name='Transport-Consume-Task')
         self._check_clients_task: asyncio.Task = self._loop.create_task(self._clients_controller.check_clients(),
                                                                         name='Check-Clients-Task')
+        self._clients_sender_task: asyncio.Task = self._loop.create_task(self._clients_sender.queue_handler(),
+                                                                         name='Clients-Sender-Task')
 
     @property
     def name(self) -> str:
@@ -78,6 +79,7 @@ class MainServerLoop:
             module_name, title, ex = await self._exception_queue.get()
             self._logger.critical(f'{module_name} | {title} | Exception: {ex}')
             self._logger.exception(ex)
+            self._exception_queue.task_done()
 
             await asyncio.sleep(2)
 
@@ -85,6 +87,7 @@ class MainServerLoop:
                 module_name, title, ex = await self._exception_queue.get()
                 self._logger.critical(f'{module_name} | {title} | Exception: {ex}')
                 self._logger.exception(ex)
+                self._exception_queue.task_done()
 
             self.cancel_all_tasks(with_exc_analysis_task=False)
 
@@ -96,5 +99,6 @@ class MainServerLoop:
             self._exception_analysis_task,
             self._runserver_task,
             self._check_clients_task,
+            self._clients_sender_task,
             self._transport_consume_task
         ])

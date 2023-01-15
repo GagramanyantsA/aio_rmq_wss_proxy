@@ -3,22 +3,12 @@ import json
 
 from logging import Logger
 
-from typing import Dict
+from typing import Dict, Optional
 
 from server import AsyncServerHandler, SecuredWebsocketServerProtocol
 
 from ws_service_public.PublicClientsController import PublicClientsController
-
-
-class MessageKeys:
-    EVENT = 'event'
-    ROOM = 'room'
-    RESULT = 'result'
-
-
-class Events:
-    SUBSCRIBE = 'subscribe'
-    UNSUBSCRIBE = 'unsubscribe'
+from ws_service_public.const import MessageKeys, Events
 
 
 class PublicAsyncServerHandler(AsyncServerHandler):
@@ -56,39 +46,23 @@ class PublicAsyncServerHandler(AsyncServerHandler):
             await self._send_unknown_event_message(websocket, event)
 
     async def _send_unknown_room_message(self, websocket: SecuredWebsocketServerProtocol, event: str, room_name: str):
-        message = json.dumps({
-            MessageKeys.EVENT: event,
-            MessageKeys.ROOM: room_name,
-            MessageKeys.RESULT: f'unknown room: {room_name}'
-        })
-
-        await websocket.send(message)
-        self._logger.debug(f'{self.name} S > {message}')
+        await self._send_response(websocket, event, room_name, f'unknown room: {room_name}')
 
     async def _send_subscribed_message(self, websocket: SecuredWebsocketServerProtocol, room_name: str):
-        message = json.dumps({
-            MessageKeys.EVENT: Events.SUBSCRIBE,
-            MessageKeys.ROOM: room_name,
-            MessageKeys.RESULT: 'OK'
-        })
-
-        await websocket.send(message)
-        self._logger.debug(f'{self.name} S > {message}')
+        await self._send_response(websocket, Events.SUBSCRIBE, room_name, 'OK')
 
     async def _send_unsubscribed_message(self, websocket: SecuredWebsocketServerProtocol, room_name: str):
-        message = json.dumps({
-            MessageKeys.EVENT: Events.UNSUBSCRIBE,
-            MessageKeys.ROOM: room_name,
-            MessageKeys.RESULT: 'OK'
-        })
-
-        await websocket.send(message)
-        self._logger.debug(f'{self.name} S > {message}')
+        await self._send_response(websocket, Events.UNSUBSCRIBE, room_name, 'OK')
 
     async def _send_unknown_event_message(self, websocket: SecuredWebsocketServerProtocol, event: str):
+        await self._send_response(websocket, event, None, f'unknown event: {event}')
+
+    async def _send_response(self, websocket: SecuredWebsocketServerProtocol,
+                             event: str, room: Optional[str], result: str):
         message = json.dumps({
             MessageKeys.EVENT: event,
-            MessageKeys.RESULT: f'unknown event: {event}'
+            MessageKeys.ROOM: room,
+            MessageKeys.RESULT: result
         })
 
         await websocket.send(message)

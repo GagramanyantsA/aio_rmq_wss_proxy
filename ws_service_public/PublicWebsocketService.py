@@ -2,10 +2,12 @@ import asyncio
 
 from logging import Logger
 
-from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol, AioRmqConsumer
+from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol
 
 from ws_service_public.PublicAsyncServerHandler import PublicAsyncServerHandler
 from ws_service_public.PublicClientsController import PublicClientsController
+from ws_service_public.PublicRmqConsumer import PublicRmqConsumer
+from ws_service_public.PublicClientsSender import PublicClientsSender
 
 
 class PublicWebsocketService(MainServerLoop):
@@ -33,14 +35,17 @@ class PublicWebsocketService(MainServerLoop):
                                    SecuredWebsocketServerProtocol,
                                    ws_host, ws_port, logger)
 
-        aio_rmq_consumer = AioRmqConsumer(rmq_host, rmq_port,
-                                          'WS_EXCHANGE', 'PUBLIC_WEBSOCKET_QUEUE',
-                                          logger, exception_queue)
+        received_messages_queue = asyncio.Queue()
+
+        aio_rmq_consumer = PublicRmqConsumer(rmq_host, rmq_port, received_messages_queue, logger, exception_queue)
+
+        clients_sender = PublicClientsSender(received_messages_queue, clients_controller, logger, exception_queue)
 
         super(PublicWebsocketService, self).__init__('Public WS Service',
                                                      async_server,
                                                      async_server_handler,
                                                      aio_rmq_consumer,
                                                      clients_controller,
+                                                     clients_sender,
                                                      logger,
                                                      exception_queue)
