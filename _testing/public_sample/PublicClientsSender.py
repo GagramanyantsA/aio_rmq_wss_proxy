@@ -3,8 +3,7 @@ import asyncio
 from logging import Logger
 from typing import Dict, Optional
 
-from server import ClientsSender
-from _testing.public_sample.PublicClientsController import PublicClientsController
+from server import ClientsSender, ClientsController
 from _testing.public_sample.const import MessageKeys, Actions, Events
 
 
@@ -16,7 +15,7 @@ class PublicClientsSender(ClientsSender):
     """
 
     def __init__(self, from_queue: asyncio.Queue,
-                 clients_controller: PublicClientsController,
+                 clients_controller: ClientsController,
                  logger: Logger, exception_queue: asyncio.Queue):
         super(PublicClientsSender, self).__init__('Pub Clients Sender',
                                                   from_queue, clients_controller,

@@ -5,7 +5,7 @@ import uuid
 from logging import Logger
 from typing import Dict, Tuple, Optional
 
-from server.ClientsControllerBase import ClientsControllerBase
+from server.ClientsController import ClientsController
 from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 from server.Utils import Utils
 
@@ -15,7 +15,7 @@ from websockets.exceptions import ConnectionClosedOK as WS_ConnectionClosedOK, \
 
 class AsyncServerHandler:
 
-    def __init__(self, clients_controller: ClientsControllerBase,
+    def __init__(self, clients_controller: ClientsController,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
         self._name = Utils.format_name('AsyncWSHandler')
@@ -30,6 +30,13 @@ class AsyncServerHandler:
         return self._name
 
     async def _process_data(self, client_id: str, websocket: SecuredWebsocketServerProtocol, json_obj: Dict):
+        """
+        This Method for specifying exchange protocol between client and server or how do server react to user requests
+        :param client_id: client's uuid
+        :param websocket: websocket connection with client
+        :param json_obj: user's data in request
+        :return: nothing (need just to send response through websocket object)
+        """
         raise NotImplementedError()
 
     def _parse_message(self, message: str) -> Tuple[Optional[Dict], str]:

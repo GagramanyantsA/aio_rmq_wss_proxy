@@ -22,4 +22,5 @@ class PublicRmqConsumer(AioRmqConsumer):
                                                 received_messages_queue, logger, exception_queue)
 
     def _check_message(self, message_json: Dict) -> str:
+        # todo some logic to check message
         return ''

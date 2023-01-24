@@ -2,10 +2,9 @@ import asyncio
 
 from logging import Logger
 
-from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol
+from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol, ClientsController
 
 from _testing.public_sample.PublicAsyncServerHandler import PublicAsyncServerHandler
-from _testing.public_sample.PublicClientsController import PublicClientsController
 from _testing.public_sample.PublicRmqConsumer import PublicRmqConsumer
 from _testing.public_sample.PublicClientsSender import PublicClientsSender
 
@@ -22,7 +21,8 @@ class PublicWebsocketService(MainServerLoop):
                  logger: Logger):
         exception_queue = asyncio.Queue()
 
-        clients_controller = PublicClientsController(logger, exception_queue)
+        clients_controller = ClientsController({f'public room {room_num}': [] for room_num in range(1, 5)},
+                                               logger, exception_queue)
 
         async_server_handler = PublicAsyncServerHandler(clients_controller, logger, exception_queue)
 

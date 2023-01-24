@@ -4,7 +4,7 @@ import json
 from logging import Logger
 from typing import Dict, List, Tuple
 
-from server.ClientsControllerBase import ClientsControllerBase
+from server.ClientsController import ClientsController
 from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 from server.Utils import Utils
 
@@ -17,7 +17,7 @@ class ClientsSender:
     def __init__(self,
                  name: str,
                  from_queue: asyncio.Queue,
-                 clients_controller: ClientsControllerBase,
+                 clients_controller: ClientsController,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
         self._name = Utils.format_name(name)

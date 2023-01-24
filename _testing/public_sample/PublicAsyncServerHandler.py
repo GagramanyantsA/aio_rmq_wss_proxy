@@ -5,9 +5,8 @@ from logging import Logger
 
 from typing import Dict, Optional
 
-from server import AsyncServerHandler, SecuredWebsocketServerProtocol
+from server import AsyncServerHandler, SecuredWebsocketServerProtocol, ClientsController
 
-from _testing.public_sample.PublicClientsController import PublicClientsController
 from _testing.public_sample.const import MessageKeys, Events
 
 
@@ -18,7 +17,7 @@ class PublicAsyncServerHandler(AsyncServerHandler):
 
     """
 
-    def __init__(self, public_client_controller: PublicClientsController,
+    def __init__(self, public_client_controller: ClientsController,
                  logger: Logger, exception_queue: asyncio.Queue):
         super(PublicAsyncServerHandler, self).__init__(public_client_controller, logger, exception_queue)
 

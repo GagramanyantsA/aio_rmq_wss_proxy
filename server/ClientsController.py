@@ -1,19 +1,21 @@
 import asyncio
 from logging import Logger
 
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from server.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 from server.Utils import Utils
 
 
-class ClientsControllerBase:
+class ClientsController:
 
-    def __init__(self, logger: Logger, exception_queue: asyncio.Queue):
+    def __init__(self, rooms: Dict,
+                 logger: Logger,
+                 exception_queue: asyncio.Queue):
         self._name = Utils.format_name('ClientController')
 
+        self._rooms = rooms
         self._clients = {}
-        self._rooms = {}
 
         self._logger = logger
         self._exception_queue = exception_queue

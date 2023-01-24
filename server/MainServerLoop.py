@@ -2,7 +2,7 @@ import asyncio
 
 from logging import Logger
 
-from server import ClientsSender, AioRmqConsumer, AsyncServer, AsyncServerHandler, ClientsControllerBase
+from server import ClientsSender, AioRmqConsumer, AsyncServer, AsyncServerHandler, ClientsController
 from server.Utils import Utils
 
 
@@ -12,7 +12,7 @@ class MainServerLoop:
                  async_server: AsyncServer,
                  async_server_handler: AsyncServerHandler,
                  aio_rmq_consumer: AioRmqConsumer,
-                 clients_controller: ClientsControllerBase,
+                 clients_controller: ClientsController,
                  clients_sender: ClientsSender,
                  logger: Logger,
                  exception_queue: asyncio.Queue):
@@ -24,7 +24,7 @@ class MainServerLoop:
         self._async_server: AsyncServer = async_server
         self._async_server_handler: AsyncServer = async_server_handler
         self._aio_rmq_consumer: AioRmqConsumer = aio_rmq_consumer
-        self._clients_controller: ClientsControllerBase = clients_controller
+        self._clients_controller: ClientsController = clients_controller
         self._clients_sender = clients_sender
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()

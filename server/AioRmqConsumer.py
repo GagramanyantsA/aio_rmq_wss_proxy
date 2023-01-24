@@ -41,7 +41,10 @@ class AioRmqConsumer:
         return self._name
 
     def _check_message(self, message_json: Dict) -> str:
-        raise NotImplementedError()
+        """
+        You can override this method for your own message check
+        """
+        return ''
 
     async def _process_message(self, body: bytes):
         self._logger.info(f'{self.name} R < {body}')
