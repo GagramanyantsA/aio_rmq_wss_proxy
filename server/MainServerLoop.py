@@ -29,8 +29,8 @@ class MainServerLoop:
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-        self._main_task: asyncio.Task = self._loop.create_task(self.main(),
-                                                               name='Main-Task')
+        self._main_task: asyncio.Task = self._loop.create_task(self.main(), name='Main-Task')
+
         self._tasks = [
             self._loop.create_task(self._async_server.run(), name='Async-Server-Task'),
             self._loop.create_task(self._clients_controller.check_clients(), name='Check-Clients-Task'),
@@ -71,12 +71,20 @@ class MainServerLoop:
                 self._logger.exception(ex)
                 self._exception_queue.task_done()
 
-            self._main_task.cancel()
+            self.cancel()
 
         except asyncio.CancelledError:
             self._logger.warning(f'{exc_analysis_name} Cancelled')
         finally:
             self._logger.warning(f'{exc_analysis_name} Stopped')
+
+    async def _cancel_tasks(self):
+        self._async_server.stop()
+
+        for task in self._tasks:
+            if not task.done():
+                task.cancel()
+                await task
 
     async def main(self):
         self._logger.warning(f'{self.name} Started')
@@ -85,12 +93,6 @@ class MainServerLoop:
             await asyncio.wait(self._tasks)
         except asyncio.CancelledError:
             self._logger.warning(f'{self.name} Cancelled')
-
-        self._async_server.stop()
-
-        for task in self._tasks:
-            if not task.done():
-                task.cancel()
-                await task
+            await self._cancel_tasks()
 
         self._logger.warning(f'{self.name} Stopped')

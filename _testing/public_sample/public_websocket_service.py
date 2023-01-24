@@ -4,7 +4,7 @@ from logger import LoggerLoader
 from _testing.public_sample.PublicWebsocketService import PublicWebsocketService
 
 if __name__ == '__main__':
-    logger = LoggerLoader('public_websocket_service.log', 'DEBUG', os.getcwd()).get_logger()
+    logger = LoggerLoader('public_websocket_service.log', 'DEBUG', os.getcwd() + '/').get_logger()
 
     http_host = 'localhost'
     http_port = 9001
