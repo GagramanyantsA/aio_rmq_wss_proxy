@@ -4,8 +4,8 @@ from logging import Logger
 from typing import Dict, Optional
 
 from server import ClientsSender
-from ws_service_public.PublicClientsController import PublicClientsController
-from ws_service_public.const import MessageKeys, Actions, Events
+from _testing.public_sample.PublicClientsController import PublicClientsController
+from _testing.public_sample.const import MessageKeys, Actions, Events
 
 
 class PublicClientsSender(ClientsSender):

@@ -1,7 +1,7 @@
 import os
 
 from logger import LoggerLoader
-from ws_service_public.PublicWebsocketService import PublicWebsocketService
+from _testing.public_sample.PublicWebsocketService import PublicWebsocketService
 
 if __name__ == '__main__':
     logger = LoggerLoader('public_websocket_service.log', 'DEBUG', os.getcwd()).get_logger()
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     try:
         server_loop.run()
     except KeyboardInterrupt:
-        server_loop.cancel_all_tasks(with_exc_analysis_task=True)
-        server_loop.restart_to_cancel_tasks()
+        server_loop.cancel()
+        server_loop.run()
     finally:
         server_loop.stop()

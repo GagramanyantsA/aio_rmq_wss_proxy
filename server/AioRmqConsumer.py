@@ -43,7 +43,7 @@ class AioRmqConsumer:
     def _check_message(self, message_json: Dict) -> str:
         raise NotImplementedError()
 
-    async def _process_message(self, body):
+    async def _process_message(self, body: bytes):
         self._logger.info(f'{self.name} R < {body}')
 
         message_json = json.loads(body)
@@ -57,7 +57,7 @@ class AioRmqConsumer:
         await self._received_messages_queue.put(message_json)
 
     async def _message_handler(self, message: aio_pika.abc.AbstractIncomingMessage):
-        async with message.process():
+        async with message.process(ignore_processed=True):
             try:
                 await self._process_message(message.body)
                 await message.ack()
@@ -134,5 +134,5 @@ class AioRmqConsumer:
 
         except Exception as ex:
             await self._close_conn()
-            self._logger.warning(f'{self.name} Stopped')
+            self._logger.error(f'{self.name} Stopped because of an Error')
             await self._exception_queue.put((self.name, 'Running Consume', ex))

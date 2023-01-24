@@ -63,7 +63,7 @@ class AsyncServerHandler:
         try:
             client_id, client_ip = self._add_client(websocket)
         except Exception as ex:
-            self._logger.exception(ex)
+            self._logger.error(f'{self.name} Stopped because of an Error')
             await self._exception_queue.put((self.name, 'Adding Connected Client', ex))
             return
 
@@ -89,12 +89,12 @@ class AsyncServerHandler:
                 break
 
             except Exception as ex:
-                self._logger.exception(ex)
+                self._logger.error(f'{self.name} Stopped because of an Error')
                 await self._exception_queue.put((self.name, 'Processing Message', ex))
                 break
 
         try:
             self._remove_client(client_id, client_ip)
         except Exception as ex:
-            self._logger.exception(ex)
+            self._logger.error(f'{self.name} Stopped because of an Error')
             await self._exception_queue.put((self.name, 'Removing Disconnected Client', ex))

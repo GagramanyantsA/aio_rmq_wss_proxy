@@ -29,46 +29,28 @@ class MainServerLoop:
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-        self._exception_analysis_task: asyncio.Task = self._loop.create_task(self.exception_analysis(),
-                                                                             name='Exc-Analysis-Task')
-        self._runserver_task: asyncio.Task = self._loop.create_task(self._async_server.run(),
-                                                                    name='Async-Server-Task')
-        self._transport_consume_task: asyncio.Task = self._loop.create_task(self._aio_rmq_consumer.consume(),
-                                                                            name='Transport-Consume-Task')
-        self._check_clients_task: asyncio.Task = self._loop.create_task(self._clients_controller.check_clients(),
-                                                                        name='Check-Clients-Task')
-        self._clients_sender_task: asyncio.Task = self._loop.create_task(self._clients_sender.queue_handler(),
-                                                                         name='Clients-Sender-Task')
+        self._main_task: asyncio.Task = self._loop.create_task(self.main(),
+                                                               name='Main-Task')
+        self._tasks = [
+            self._loop.create_task(self._async_server.run(), name='Async-Server-Task'),
+            self._loop.create_task(self._clients_controller.check_clients(), name='Check-Clients-Task'),
+            self._loop.create_task(self._aio_rmq_consumer.consume(), name='Transport-Consume-Task'),
+            self._loop.create_task(self._clients_sender.queue_handler(), name='Clients-Sender-Task'),
+            self._loop.create_task(self.exception_analysis(), name='Exc-Analysis-Task')
+        ]
 
     @property
     def name(self) -> str:
         return self._name
 
     def run(self):
-        self._loop.run_until_complete(self.main())
-
-    def restart_to_cancel_tasks(self):
-        def stop_loop():
-            self._loop.stop()
-
-        self._loop.call_later(1, stop_loop)
-        self._loop.run_forever()
+        self._loop.run_until_complete(self._main_task)
 
     def stop(self):
         self._loop.close()
 
-    def cancel_all_tasks(self, with_exc_analysis_task: bool):
-        exc_analysis_task_name = self._exception_analysis_task.get_name()
-
-        for task in asyncio.all_tasks(self._loop):
-            task_name = task.get_name()
-
-            if not with_exc_analysis_task and task_name == exc_analysis_task_name:
-                continue
-
-            task.cancel()
-
-        self._async_server.stop()
+    def cancel(self):
+        self._main_task.cancel()
 
     async def exception_analysis(self):
         exc_analysis_name = Utils.format_name('Exception Analysis')
@@ -89,16 +71,26 @@ class MainServerLoop:
                 self._logger.exception(ex)
                 self._exception_queue.task_done()
 
-            self.cancel_all_tasks(with_exc_analysis_task=False)
+            self._main_task.cancel()
 
         except asyncio.CancelledError:
+            self._logger.warning(f'{exc_analysis_name} Cancelled')
+        finally:
             self._logger.warning(f'{exc_analysis_name} Stopped')
 
     async def main(self):
-        await asyncio.wait([
-            self._exception_analysis_task,
-            self._runserver_task,
-            self._check_clients_task,
-            self._clients_sender_task,
-            self._transport_consume_task
-        ])
+        self._logger.warning(f'{self.name} Started')
+
+        try:
+            await asyncio.wait(self._tasks)
+        except asyncio.CancelledError:
+            self._logger.warning(f'{self.name} Cancelled')
+
+        self._async_server.stop()
+
+        for task in self._tasks:
+            if not task.done():
+                task.cancel()
+                await task
+
+        self._logger.warning(f'{self.name} Stopped')

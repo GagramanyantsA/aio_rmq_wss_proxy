@@ -82,5 +82,6 @@ class ClientsSender:
             return
 
         except Exception as ex:
+            self._logger.error(f'{self.name} Stopped because of an Error')
             await self._exception_queue.put((self.name, 'Queue Handler', ex))
             return

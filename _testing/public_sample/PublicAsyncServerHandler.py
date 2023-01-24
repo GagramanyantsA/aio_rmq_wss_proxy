@@ -7,8 +7,8 @@ from typing import Dict, Optional
 
 from server import AsyncServerHandler, SecuredWebsocketServerProtocol
 
-from ws_service_public.PublicClientsController import PublicClientsController
-from ws_service_public.const import MessageKeys, Events
+from _testing.public_sample.PublicClientsController import PublicClientsController
+from _testing.public_sample.const import MessageKeys, Events
 
 
 class PublicAsyncServerHandler(AsyncServerHandler):
@@ -45,7 +45,7 @@ class PublicAsyncServerHandler(AsyncServerHandler):
         else:
             await self._send_unknown_event_message(websocket, event)
 
-    async def _send_unknown_room_message(self, websocket: SecuredWebsocketServerProtocol, event: str, room_name: str):
+    async def _send_unknown_room_message(self, websocket: SecuredWebsocketServerProtocol, room_name: str, event: str):
         await self._send_response(websocket, event, room_name, f'unknown room: {room_name}')
 
     async def _send_subscribed_message(self, websocket: SecuredWebsocketServerProtocol, room_name: str):

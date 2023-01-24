@@ -4,10 +4,10 @@ from logging import Logger
 
 from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol
 
-from ws_service_public.PublicAsyncServerHandler import PublicAsyncServerHandler
-from ws_service_public.PublicClientsController import PublicClientsController
-from ws_service_public.PublicRmqConsumer import PublicRmqConsumer
-from ws_service_public.PublicClientsSender import PublicClientsSender
+from _testing.public_sample.PublicAsyncServerHandler import PublicAsyncServerHandler
+from _testing.public_sample.PublicClientsController import PublicClientsController
+from _testing.public_sample.PublicRmqConsumer import PublicRmqConsumer
+from _testing.public_sample.PublicClientsSender import PublicClientsSender
 
 
 class PublicWebsocketService(MainServerLoop):
@@ -28,6 +28,7 @@ class PublicWebsocketService(MainServerLoop):
 
         # setup for websocket instance which is like connected client
         SecuredWebsocketServerProtocol.CHECK_IP_ADDRESS_METHOD = None
+        SecuredWebsocketServerProtocol.CHECK_DEVICE_METHOD = None
         SecuredWebsocketServerProtocol.CHECK_TOKEN_METHOD = None
         SecuredWebsocketServerProtocol.FORWARDING_IS_ON = False
 
