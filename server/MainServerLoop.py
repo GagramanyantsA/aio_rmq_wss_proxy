@@ -25,7 +25,7 @@ class MainServerLoop:
         self._async_server_handler: AsyncServer = async_server_handler
         self._aio_rmq_consumer: AioRmqConsumer = aio_rmq_consumer
         self._clients_controller: ClientsController = clients_controller
-        self._clients_sender = clients_sender
+        self._clients_sender: ClientsSender = clients_sender
 
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
@@ -75,6 +75,7 @@ class MainServerLoop:
 
         except asyncio.CancelledError:
             self._logger.warning(f'{exc_analysis_name} Cancelled')
+
         finally:
             self._logger.warning(f'{exc_analysis_name} Stopped')
 
@@ -91,8 +92,10 @@ class MainServerLoop:
 
         try:
             await asyncio.wait(self._tasks)
+
         except asyncio.CancelledError:
             self._logger.warning(f'{self.name} Cancelled')
             await self._cancel_tasks()
 
-        self._logger.warning(f'{self.name} Stopped')
+        finally:
+            self._logger.warning(f'{self.name} Stopped')

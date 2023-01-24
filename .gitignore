@@ -3,5 +3,4 @@ __pycache__
 /.idea/
 /venv/
 
-current_thoughts
 public_websocket_service.log
