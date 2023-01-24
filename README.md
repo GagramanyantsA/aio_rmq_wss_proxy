@@ -15,9 +15,12 @@ In the current state WS server is capable of:
 ## HOW TO
 
 - Clone repository
-- cd async_wss/
-- make install
-- run_server & run_client to see how does it works
+- Run "cd async_wss/"
+- Run "make install"
+- Run the commands "make run_server" & "make run_client" to see how does it works
 
 Please, note that before running server and client you need to have installed and running Rabbit MQ broker.
 
+## TODO DO DO
+
+- Package for pip
