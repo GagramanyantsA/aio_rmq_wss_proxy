@@ -60,6 +60,12 @@ class ClientsSender:
                 self._remove_disconnected_client(client_id)
 
     async def _process_received_message(self, message_json: Dict):
+        """
+        This method is for describing how do we prepare received message from RMQ
+        and send it to connected websocket clients
+        :param message_json: message from RMQ
+        :return: nothing (need just to send update)
+        """
         raise NotImplementedError()
 
     async def queue_handler(self):
