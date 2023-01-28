@@ -24,3 +24,9 @@ In the current state WS server is capable of:
 - Run the commands "make run_server" & "make run_client" to see how does it works
 
 Please, note that before running server and client you need to have installed and running Rabbit MQ broker.
+
+This is how it works from the box.
+
+## Customization
+
+You can see the "public_sample" in "_testing/public_sample" directory and use it for build your own proxy server

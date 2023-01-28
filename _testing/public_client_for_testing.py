@@ -21,7 +21,7 @@ async def send_message(ws: websockets.WebSocketCommonProtocol, event: str, room:
 
 
 async def receive(ws: websockets.WebSocketCommonProtocol):
-    print('Waiting for test message...')
+    print('Waiting for test message from RabbitMQ...')
 
     response = await ws.recv()
 
