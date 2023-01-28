@@ -12,7 +12,11 @@ In the current state WS server is capable of:
 
 <img src="project_struct.jpg">
 
-## HOW TO
+## Pip
+
+- pip install aio-rmq-wss-proxy
+
+## Source
 
 - Clone repository
 - Run "cd aio_rmq_wss_proxy/"
