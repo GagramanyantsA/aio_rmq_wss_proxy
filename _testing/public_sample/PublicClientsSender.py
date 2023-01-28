@@ -3,8 +3,10 @@ import asyncio
 from logging import Logger
 from typing import Dict, Optional
 
-from server import ClientsSender, ClientsController
 from _testing.public_sample.const import MessageKeys, Actions, Events
+
+from aio_rmq_wss_proxy.ClientsController import ClientsController
+from aio_rmq_wss_proxy.ClientsSender import ClientsSender
 
 
 class PublicClientsSender(ClientsSender):

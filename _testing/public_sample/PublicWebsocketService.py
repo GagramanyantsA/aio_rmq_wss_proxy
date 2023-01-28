@@ -2,11 +2,15 @@ import asyncio
 
 from logging import Logger
 
-from server import AsyncServer, MainServerLoop, SecuredWebsocketServerProtocol, ClientsController
 
 from _testing.public_sample.PublicAsyncServerHandler import PublicAsyncServerHandler
 from _testing.public_sample.PublicRmqConsumer import PublicRmqConsumer
 from _testing.public_sample.PublicClientsSender import PublicClientsSender
+
+from aio_rmq_wss_proxy.AsyncServer import AsyncServer
+from aio_rmq_wss_proxy.ClientsController import ClientsController
+from aio_rmq_wss_proxy.MainServerLoop import MainServerLoop
+from aio_rmq_wss_proxy.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
 
 
 class PublicWebsocketService(MainServerLoop):

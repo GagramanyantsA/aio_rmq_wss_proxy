@@ -1,4 +1,4 @@
-## Asynchronous Websocket Server
+## Asynchronous RMQ -> Websocket Proxy Server
 
 Here is an implementation of typical websocket server which receives messages from RMQ and process them and send to connected websocket clients
 
@@ -15,12 +15,8 @@ In the current state WS server is capable of:
 ## HOW TO
 
 - Clone repository
-- Run "cd async_wss/"
+- Run "cd aio_rmq_wss_proxy/"
 - Run "make install"
 - Run the commands "make run_server" & "make run_client" to see how does it works
 
 Please, note that before running server and client you need to have installed and running Rabbit MQ broker.
-
-## TODO DO DO
-
-- Package for pip

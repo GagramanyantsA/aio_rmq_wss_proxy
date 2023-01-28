@@ -1,6 +1,6 @@
 import os
 
-from logger import LoggerLoader
+from logger.LoggerLoader import LoggerLoader
 from _testing.public_sample.PublicWebsocketService import PublicWebsocketService
 
 if __name__ == '__main__':

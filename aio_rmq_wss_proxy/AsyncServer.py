@@ -3,7 +3,7 @@ import websockets
 from logging import Logger
 from typing import Type, Callable, Coroutine
 
-from server.Utils import Utils
+from .Utils import Utils
 
 from websockets.server import WebSocketServerProtocol
 
