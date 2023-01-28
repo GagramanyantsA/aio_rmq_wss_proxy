@@ -5,8 +5,7 @@ from typing import Dict, Optional
 
 from _testing.public_sample.const import MessageKeys, Actions, Events
 
-from aio_rmq_wss_proxy.ClientsController import ClientsController
-from aio_rmq_wss_proxy.ClientsSender import ClientsSender
+from aio_rmq_wss_proxy import ClientsController, ClientsSender
 
 
 class PublicClientsSender(ClientsSender):

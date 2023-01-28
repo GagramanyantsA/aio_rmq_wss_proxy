@@ -3,7 +3,7 @@ import asyncio
 from logging import Logger
 from typing import Dict
 
-from aio_rmq_wss_proxy.AioRmqConsumer import AioRmqConsumer
+from aio_rmq_wss_proxy import AioRmqConsumer
 
 
 class PublicRmqConsumer(AioRmqConsumer):

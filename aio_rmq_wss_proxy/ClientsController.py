@@ -3,8 +3,8 @@ from logging import Logger
 
 from typing import List, Tuple, Dict
 
+from . import Utils
 from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from .Utils import Utils
 
 
 class ClientsController:

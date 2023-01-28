@@ -5,9 +5,8 @@ import uuid
 from logging import Logger
 from typing import Dict, Tuple, Optional
 
-from .ClientsController import ClientsController
+from . import Utils, ClientsController
 from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from .Utils import Utils
 
 from websockets.exceptions import ConnectionClosedOK as WS_ConnectionClosedOK, \
     ConnectionClosedError as WS_ConnectionClosedError

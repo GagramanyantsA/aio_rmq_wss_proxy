@@ -4,9 +4,8 @@ import json
 from logging import Logger
 from typing import Dict, List, Tuple
 
-from .ClientsController import ClientsController
+from . import Utils, ClientsController
 from .SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
-from .Utils import Utils
 
 from websockets.exceptions import ConnectionClosedOK as WS_ConnectionClosedOK, \
     ConnectionClosedError as WS_ConnectionClosedError

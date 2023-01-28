@@ -2,12 +2,7 @@ import asyncio
 
 from logging import Logger
 
-from .AioRmqConsumer import AioRmqConsumer
-from .AsyncServer import AsyncServer
-from .AsyncServerHandler import AsyncServerHandler
-from .ClientsController import ClientsController
-from .ClientsSender import ClientsSender
-from .Utils import Utils
+from . import AioRmqConsumer, AsyncServer, AsyncServerHandler, ClientsController, ClientsSender, Utils
 
 
 class MainServerLoop:

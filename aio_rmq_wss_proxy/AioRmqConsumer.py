@@ -6,7 +6,7 @@ from aio_pika import ExchangeType
 from logging import Logger
 from typing import Dict
 
-from .Utils import Utils
+from . import Utils
 
 
 class AioRmqConsumer:

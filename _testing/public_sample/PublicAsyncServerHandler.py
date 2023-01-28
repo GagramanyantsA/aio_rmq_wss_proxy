@@ -5,12 +5,9 @@ from logging import Logger
 
 from typing import Dict, Optional
 
-
 from _testing.public_sample.const import MessageKeys, Events
 
-from aio_rmq_wss_proxy.AsyncServerHandler import AsyncServerHandler
-from aio_rmq_wss_proxy.ClientsController import ClientsController
-from aio_rmq_wss_proxy.SecuredWebsocketServerProtocol import SecuredWebsocketServerProtocol
+from aio_rmq_wss_proxy import AsyncServerHandler, ClientsController, SecuredWebsocketServerProtocol
 
 
 class PublicAsyncServerHandler(AsyncServerHandler):
